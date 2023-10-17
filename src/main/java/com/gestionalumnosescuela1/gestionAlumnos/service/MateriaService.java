@@ -36,7 +36,7 @@ public class MateriaService {
 
 	}
 
-	public Materia findMateria(int id) {
+	public Materia findMateria(Long id) {
 		try {
 
 			return materiaDao.findById(id).orElse(null);
@@ -49,7 +49,7 @@ public class MateriaService {
 
 	}
 
-	public void eliminarMateria(int id) {
+	public void eliminarMateria(long id) {
 
 		try {
 			materiaDao.deleteById(id);

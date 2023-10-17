@@ -386,7 +386,7 @@ public class controller {
 
 	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
 	@GetMapping("/verMateria/{id}")
-	public MateriaDTO verMateria(@PathVariable int id) {
+	public MateriaDTO verMateria(@PathVariable Long id) {
 		System.out.println("LLEGA A VER MATERIA");
 		Materia materia = materiaService.findMateria(id);
 		MateriaDTO materiaDTO = new MateriaDTO(materia);
@@ -398,7 +398,7 @@ public class controller {
 
 	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
 	@PostMapping("/crearExamen/{idMateria}")
-	public ResponseEntity<?> crearExamen(@PathVariable int idMateria, @RequestBody List<Pregunta> preguntas) {
+	public ResponseEntity<?> crearExamen(@PathVariable long idMateria, @RequestBody List<Pregunta> preguntas) {
 
 		Map<String, Object> response = new HashMap<>();
 
@@ -451,7 +451,7 @@ public class controller {
 
 	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
 	@GetMapping("/mostrarExamen/{idExamen}")
-	public ResponseEntity<?> mostrarExamen(@PathVariable int idExamen) { // CREA UN EXAMEN DTO Y PONELE LOS VALORES VOS
+	public ResponseEntity<?> mostrarExamen(@PathVariable long idExamen) { // CREA UN EXAMEN DTO Y PONELE LOS VALORES VOS
 																			// MISMO MENOS LOS BOOLEAN NI LAS RELACIONES
 
 		Map<String, Object> response = new HashMap<>();
@@ -494,7 +494,7 @@ public class controller {
 
 	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
 	@PostMapping("/corregirExamen/{idExamen}/{idAlumno}")
-	public ResponseEntity<?> corregirExamen(@RequestBody Examen examen, @PathVariable int idExamen,
+	public ResponseEntity<?> corregirExamen(@RequestBody Examen examen, @PathVariable long idExamen,
 			@PathVariable int idAlumno) {
 
 		Usuario alumno = usuarioService.findUsuario(idAlumno);
