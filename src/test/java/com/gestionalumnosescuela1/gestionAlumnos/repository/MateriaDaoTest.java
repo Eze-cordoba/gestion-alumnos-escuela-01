@@ -23,111 +23,93 @@ public class MateriaDaoTest {
     Materia materiaC;
 
     @BeforeEach
-    void before(){
-
+    void before() {
+        /* Inicializar materias y guardarlas en la base de datos antes de cada prueba */
         materiaA = Materia.builder()
                 .name("MATEMATICA")
                 .build();
         dao.save(materiaA);
-
 
         materiaB = Materia.builder()
                 .name("FISICA")
                 .build();
         dao.save(materiaB);
 
-
         materiaC = Materia.builder()
                 .name("INGLES")
                 .build();
         dao.save(materiaC);
-
     }
 
     @Test
-    void testFindMateriasPorSiglas(){
-
+    void testFindMateriasPorSiglas() {
+        /* Buscar materias con el nombre "MATEMATICA" en su contenido */
         List<Materia> materias = dao.findByNameContaining("MATEMATICA");
 
+        /* Verificar que la lista contenga una única materia y que su nombre sea "MATEMATICA" */
         assertThat(materias.size()).isEqualTo(1);
         assertThat(materias.get(0).getName()).isEqualTo("MATEMATICA");
-
-
     }
 
-
     @Test
-    void testguardarUsuario (){
-
+    void testguardarMateria() {
+        /* Crear y guardar una nueva materia en la base de datos */
         Materia materia = Materia.builder()
                 .name("PROGRAMACION")
                 .build();
-
         Materia materiaGuardada = dao.save(materia);
 
+        /* Verificar que la materia guardada no sea nula y que su ID sea mayor que 0 */
         assertThat(materiaGuardada).isNotNull();
         assertThat(materiaGuardada.getId()).isGreaterThan(0);
-
     }
 
-
     @Test
-    void testActualizarUsuario (){
-
+    void testActualizarMateria() {
+        /* Crear y guardar una nueva materia en la base de datos */
         Materia materia = Materia.builder()
                 .name("PROGRAMACION")
                 .build();
-
         Materia materiaBD = dao.save(materia);
 
+        /* Actualizar el nombre de la materia */
         materiaBD.setName("LABORATORIO");
-
-
         Materia materiaActualizada = dao.save(materiaBD);
 
+        /* Verificar que el nombre de la materia guardada coincida con el nombre actualizado */
         assertThat(materiaActualizada.getName()).isEqualTo("LABORATORIO");
-
-
-
     }
 
     @Test
-    void testEliminarUsuario(){
-
+    void testEliminarExamen() {
+        /* Eliminar la materiaA de la base de datos */
         dao.delete(materiaA);
 
-       Optional <Materia> materia = dao.findById(materiaA.getId());
+        /* Intentar encontrar la materia eliminada por su ID */
+        Optional<Materia> materia = dao.findById(materiaA.getId());
 
+        /* Verificar que la materia no se encuentre en la base de datos */
         assertThat(materia).isEmpty();
-
     }
 
-
     @Test
-    void testListarEmpleados (){
-
-
+    void testListarMaterias() {
+        /* Obtener una lista de todas las materias en la base de datos */
         List<Materia> materias = dao.findAll();
 
+        /* Verificar que la lista no sea nula y que contenga la cantidad esperada de materias (11 en este caso) */
         assertThat(materias).isNotNull();
         assertThat(materias.size()).isEqualTo(11);
-
-
     }
-
 
     @Test
-    void testFindById(){
+    void testFindById() {
+        /* Buscar la materiaA por su ID en la base de datos */
+        Materia materiaBd = dao.findById(materiaA.getId()).get();
 
-        Materia  materiaBd = dao.findById(materiaA.getId()).get();
-
+        /* Verificar que la materia encontrada no sea nula y que su nombre coincida con el nombre original de materiaA */
         assertThat(materiaBd).isNotNull();
         assertThat(materiaBd.getName()).isEqualTo("MATEMATICA");
-
-
-
     }
-
-
-
 }
+

@@ -23,8 +23,8 @@ public class UsuarioDaoTest {
     Usuario usuarioC;
 
     @BeforeEach
-    void before(){
-
+    void before() {
+        /* Inicializar usuarios y guardarlos en la base de datos antes de cada prueba */
         usuarioA = Usuario.builder()
                 .firstname("ez5")
                 .lastname("smith")
@@ -32,13 +32,11 @@ public class UsuarioDaoTest {
                 .build();
         dao.save(usuarioA);
 
-
         usuarioB = Usuario.builder()
                 .firstname("ez6")
                 .lastname("smith")
                 .email("ez6smith@hotmail.com")
                 .build();
-
         dao.save(usuarioB);
 
         usuarioC = Usuario.builder()
@@ -46,89 +44,73 @@ public class UsuarioDaoTest {
                 .lastname("smith")
                 .email("ez7smith@hotmail.com")
                 .build();
-
         dao.save(usuarioC);
-
     }
 
     @Test
-    void testguardarUsuario (){
-
+    void testguardarUsuario() {
+        /* Crear y guardar un nuevo usuario en la base de datos */
         Usuario usuario = Usuario.builder()
                 .firstname("ez3")
                 .lastname("smith")
                 .email("ez3smith@hotmail.com")
                 .build();
-
         Usuario usuarioGuardado = dao.save(usuario);
 
+        /* Verificar que el usuario guardado no sea nulo y que su ID sea mayor que 0 */
         assertThat(usuarioGuardado).isNotNull();
         assertThat(usuarioGuardado.getId()).isGreaterThan(0);
-
     }
 
-
     @Test
-    void testActualizarUsuario (){
-
+    void testActualizarUsuario() {
+        /* Crear y guardar un nuevo usuario en la base de datos */
         Usuario usuario = Usuario.builder()
                 .firstname("ez3")
                 .lastname("smith")
                 .email("ez3smith@hotmail.com")
                 .build();
-
         Usuario usuarioBD = dao.save(usuario);
 
+        /* Actualizar el nombre y el correo electrónico del usuario */
         usuarioBD.setFirstname("ez4");
         usuarioBD.setEmail("ez4smith@hotmail.com");
-
         Usuario usuarioActualizado = dao.save(usuarioBD);
 
+        /* Verificar que el nombre y el correo electrónico del usuario guardado coincidan con los datos actualizados */
         assertThat(usuarioActualizado.getFirstname()).isEqualTo("ez4");
         assertThat(usuarioActualizado.getEmail()).isEqualTo("ez4smith@hotmail.com");
-
-
     }
 
     @Test
-    void testEliminarUsuario(){
-
+    void testEliminarUsuario() {
+        /* Eliminar el usuarioA de la base de datos */
         dao.delete(usuarioA);
 
+        /* Intentar encontrar el usuario eliminado por su ID */
         Optional<Usuario> usuario = dao.findById(usuarioA.getId());
 
+        /* Verificar que el usuario no se encuentre en la base de datos */
         assertThat(usuario).isEmpty();
-
-
-
     }
 
-
     @Test
-    void testListarEmpleados (){
-
-
+    void testListarEmpleados() {
+        /* Obtener una lista de todos los usuarios en la base de datos */
         List<Usuario> usuarios = dao.findAll();
 
+        /* Verificar que la lista no sea nula y que contenga la cantidad esperada de usuarios (3 en este caso) */
         assertThat(usuarios).isNotNull();
         assertThat(usuarios.size()).isEqualTo(3);
-
-
     }
-
 
     @Test
-    void testFindById(){
+    void testFindById() {
+        /* Buscar el usuarioA por su ID en la base de datos */
+        Usuario usuarioBd = dao.findById(usuarioA.getId()).get();
 
-        Usuario  usuarioBd = dao.findById(usuarioA.getId()).get();
-
+        /* Verificar que el usuario encontrado no sea nulo y que su nombre coincida con el nombre original de usuarioA */
         assertThat(usuarioBd).isNotNull();
         assertThat(usuarioBd.getFirstname()).isEqualTo("ez5");
-
-
-
     }
-
-
-
 }
