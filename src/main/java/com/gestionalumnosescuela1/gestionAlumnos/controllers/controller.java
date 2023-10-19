@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "http://localhost:4200")
 @RestController
@@ -56,6 +57,13 @@ public class controller {
 	@Autowired
 	private final LogoutService logoutService;
 
+
+	/**
+	 * Este método obtiene y lista a los alumnos y responde con una lista de objetos AlumnoDTO.
+	 *
+	 * @return ResponseEntity con la lista de AlumnoDTO en el cuerpo de la respuesta (código de estado 200 - OK) si tiene éxito.
+	 *         En caso de error, responde con un mensaje de error y el código de estado correspondiente.
+	 */
 	@GetMapping("/alumnos/listarAlumnos")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<?> listarAlumnos() {
@@ -65,19 +73,16 @@ public class controller {
 		try {
 
 			List<Usuario> usuarios = usuarioService.findAll();
-			List<AlumnoDTO> alumnosDTO = new ArrayList<>();
+			//los usuarios con rol manager (alumnos) se les asignara el nombre del rol alumno
+			List<AlumnoDTO> alumnosDTO = usuarios.stream()
+					.filter(usuario -> usuario.getRole().equals(Role.MANAGER))
+					.map(alumno -> {
+						AlumnoDTO alumnoDTO = new AlumnoDTO(alumno);
+						alumnoDTO.setRol("alumno");
+						return alumnoDTO;
+					})
+					.collect(Collectors.toList());
 
-			for (Usuario alumno : usuarios) {
-
-				if (alumno.getRole().equals(Role.MANAGER)) { // LOS QUE TIENEN ROL ADMIN (PROFESORES ) NO LOS INSERTA EN
-																// L // LISTA
-
-					AlumnoDTO alumnoDTO = new AlumnoDTO(alumno);
-					alumnoDTO.setRol("alumno");
-					alumnosDTO.add(alumnoDTO);
-				}
-
-			}
 
 			return ResponseEntity.ok(alumnosDTO);
 
@@ -95,6 +100,13 @@ public class controller {
 
 	}
 
+	/**
+	 * Este método obtiene y lista las materias de un profesor identificado por su ID.
+	 *
+	 * @param id El ID del profesor del que se desean listar las materias.
+	 * @return ResponseEntity con la lista de MateriaDTO en el cuerpo de la respuesta (código de estado 200 - OK) si tiene éxito.
+	 *         En caso de error, responde con un mensaje de error y el código de estado correspondiente.
+	 */
 	@GetMapping("/alumnos/materiasDelProfesor/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<?> materiasDelProfesor(@PathVariable int id) {
@@ -128,6 +140,14 @@ public class controller {
 
 	}
 
+	/**
+	 * Este método obtiene y muestra información detallada de un usuario por su ID.
+	 *
+	 * @param id El ID del usuario que se desea mostrar.
+	 * @return ResponseEntity con un objeto AlumnoDTO en el cuerpo de la respuesta (código de estado 200 - OK) si el usuario existe.
+	 *         En caso de que el usuario no exista, responde con código de estado 404 (No encontrado).
+	 *         En caso de error, responde con un mensaje de error y el código de estado correspondiente.
+	 */
 	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
 	@GetMapping("/alumnos/{id}")
 	public ResponseEntity<?> verUsuario(@PathVariable int id) {
@@ -162,15 +182,19 @@ public class controller {
 
 	}
 
+
+	/**
+	 * Este método permite crear un nuevo alumno o profesor y asignarle un rol específico (MANAGER o ADMIN).
+	 *
+	 * @param request La solicitud de registro que contiene los datos del nuevo usuario.
+	 * @return ResponseEntity con AuthenticationResponse en el cuerpo de la respuesta (código de estado 200 - OK) si el registro es exitoso.
+	 *         En caso de error, responde con un mensaje de error y el código de estado correspondiente.
+	 */
 	@PostMapping("/alumnos/crearAlumno")
 	public ResponseEntity<?> crearAlumno(@RequestBody RegisterRequest request) {
-		// CADA ALUMNO QUE SE REGISTRE VA A TENER ROL MANAGER (DESPUES CAMBIAR NAME A
-		// ROL ALUMNO)
-		Map<String, Object> errorResponse = new HashMap<>();
-		
-		
-		try {
 
+		Map<String, Object> errorResponse = new HashMap<>();
+		try {
 
 			if (request.getRole().equals(Role.ADMIN)) {
 				System.out.println("CREANDO PROFESOR ");
@@ -179,22 +203,14 @@ public class controller {
 
 			}
 
-			// Role rol = Role.MANAGER;
-			// request.setRole(rol);
-
 			AuthenticationResponse authenticationResponse = service.register(request);
 
-			// SI EL AUTHENTICATIONRESPONSE , EL ATRIBUTO ERROR TIENE ALGO HAY UN ERROR
+			// Si el AuthenticationResponse contiene un error, se maneja como un error interno del servidor
 			if (authenticationResponse.getError() != null) {
-				// Map<String, Object> errorResponse = new HashMap<>();
-				errorResponse.put("error", authenticationResponse.getError()); // PONEMOS EL ERROR EN LA RESPUESTA
-				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse); // MANDAMOS EL ERROR
-																									// Y
-																									// EL CODGIO 500 DE
-																									// INTERNAL SERVER
-																									// ERROR
-
+				errorResponse.put("error", authenticationResponse.getError());
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
 			} else {
+				// Si no hay error, responder con el objeto AuthenticationResponse y código 200 (OK)
 				return ResponseEntity.ok(authenticationResponse);
 			}
 
@@ -210,11 +226,16 @@ public class controller {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
 
 		}
-
-		
 		
 	}
 
+	/**
+	 * Este método permite eliminar la cuenta de un usuario (alumno o profesor) identificado por su ID.
+	 *
+	 * @param idUsuario El ID del usuario cuya cuenta se desea eliminar.
+	 * @return ResponseEntity con código de estado 202 (ACEPTADO) en caso de éxito al eliminar la cuenta.
+	 *         En caso de error, responde con un mensaje de error y el código de estado correspondiente.
+	 */
 	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
 	@DeleteMapping("/eliminarCuenta/{idUsuario}")
 	public ResponseEntity<?> eliminarCuenta(@PathVariable int idUsuario) {
@@ -250,9 +271,17 @@ public class controller {
 
 	}
 
+	/**
+	 * Este método permite cerrar la sesión del usuario actual.
+	 *
+	 * @param request   El objeto HttpServletRequest para la solicitud.
+	 * @param response  El objeto HttpServletResponse para la respuesta.
+	 * @return ResponseEntity con un objeto JSON que contiene un mensaje de confirmación (código de estado 200 - OK) cuando la sesión se cierra exitosamente.
+	 */
 	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
 	@GetMapping("/cerrarSesion")
 	public ResponseEntity<Map<String, String>> cerrarSesion(HttpServletRequest request, HttpServletResponse response) {
+
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
 		if (authentication != null) {
@@ -269,9 +298,14 @@ public class controller {
 		return ResponseEntity.ok(responseMap);
 	}
 
-	
-	
-	
+	/**
+	 * Este método permite editar los datos de un alumno o profesor identificado por su ID.
+	 *
+	 * @param id      El ID del usuario (alumno o profesor) cuyos datos se desean editar.
+	 * @param usuario Los nuevos datos del usuario proporcionados en el cuerpo de la solicitud.
+	 * @return ResponseEntity con AuthenticationResponse en el cuerpo de la respuesta (código de estado 200 - OK) si la edición es exitosa.
+	 *         En caso de error, responde con un mensaje de error y el código de estado correspondiente.
+	 */
 	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
 	@PutMapping("/editarAlumno/{id}")
 	public ResponseEntity<AuthenticationResponse> editarAlumno(@PathVariable int id, @RequestBody Usuario usuario) {
@@ -281,9 +315,7 @@ public class controller {
 		UpdateRequest request = UpdateRequest.builder().firstname(usuario.getFirstname())
 				.lastname(usuario.getLastname()).email(usuario.getEmail()).password(usuario.getPassword()).build();
 
-		System.out.println(request);
 		try {
-
 			AuthenticationResponse authenticationResponse = service.editarAlumno(id, request);
 			return ResponseEntity.ok(authenticationResponse);
 
@@ -294,6 +326,14 @@ public class controller {
 
 	}
 
+	/**
+	 * Este método permite agregar una materia a un alumno o profesor identificado por su ID.
+	 *
+	 * @param idAlumno El ID del usuario (alumno o profesor) al que se le agregará la materia.
+	 * @param Materia  Los datos de la materia a agregar, proporcionados en el cuerpo de la solicitud como una cadena JSON.
+	 * @return ResponseEntity con un objeto JSON que contiene un mensaje de éxito o error (código de estado 202 - ACEPTADO si es exitoso).
+	 *         En caso de error, responde con un mensaje de error y el código de estado correspondiente.
+	 */
 	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
 	@PutMapping("/agregarMateria/{idAlumno}")
 	public ResponseEntity<?> agregarMateriaAlumno(@PathVariable int idAlumno, @RequestBody String Materia)
@@ -312,8 +352,7 @@ public class controller {
 
 		Materia materia = materiaService.encontrarMateriaPorNombre(materiaValue);
 
-		// VAMOS A ITERAR PARA BUSCAR SI EL ALUMNO O PROFESOR YA ESTA INSCRIPTO EN ESA
-		// MATERIA
+		// iteramos para ver si el alumno o profesor ya esta inscripto en la materia
 		for (Materia materiaa : usuario.getMaterias()) {
 
 			if (materiaa.getName().equalsIgnoreCase(materiaValue)) {
@@ -329,6 +368,7 @@ public class controller {
 
 		}
 
+		//si es un profesor , iteramos para ver si ya hay otro profesor dictando la materia
 		if (usuario.getRole().equals(Role.ADMIN)) {
 
 			for (Usuario usuarioo : materia.getAlumnos()) {
@@ -342,11 +382,9 @@ public class controller {
 
 		}
 
-		if (usuario.getRole().equals(Role.ADMIN)) { // it mean that the teacher is quien esta inscribiendose por lo
-													// tanto el nombre del profesor tiene que estar en
-													// materia.teachername
+		if (usuario.getRole().equals(Role.ADMIN)) {
+			// ponemos el nombre del profesor en la materia que dicta
 			materia.setTeacherName(usuario.getFirstname());
-		} else {
 		}
 
 		usuario.getMaterias().add(materia);
@@ -358,6 +396,12 @@ public class controller {
 
 	}
 
+	/**
+	 * Este método permite eliminar a un alumno o profesor identificado por su ID.
+	 *
+	 * @param id El ID del usuario (alumno o profesor) que se desea eliminar.
+	 * @return ResponseEntity con un objeto JSON vacío (código de estado 200 - OK) para indicar que el usuario se ha eliminado correctamente.
+	 */
 	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
 	@DeleteMapping("eliminarAlumno/{id}")
 	public ResponseEntity<?> eliminarAlumno(@PathVariable int id) {
@@ -370,6 +414,11 @@ public class controller {
 
 	}
 
+	/**
+	 * Este método permite listar todas las materias disponibles y convertirlas en una lista de objetos MateriaDTO.
+	 *
+	 * @return Una lista de objetos MateriaDTO que representan las materias disponibles.
+	 */
 	@GetMapping("/listarMaterias")
 	public List<MateriaDTO> listarMaterias() {
 
@@ -381,21 +430,34 @@ public class controller {
 			materiasDTO.add(materiaDTO);
 		}
 
-		return materiasDTO;
+		return ResponseEntity.status(HttpStatus.ACCEPTED).body(materiasDTO).getBody();
+
 	}
 
+	/**
+	 * Este método permite ver los detalles de una materia específica a través de su ID.
+	 *
+	 * @param id El ID de la materia que se desea ver.
+	 * @return Un objeto MateriaDTO que representa los detalles de la materia.
+	 */
 	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
 	@GetMapping("/verMateria/{id}")
-	public MateriaDTO verMateria(@PathVariable Long id) {
-		System.out.println("LLEGA A VER MATERIA");
+	public ResponseEntity<?> verMateria(@PathVariable Long id) {
+
 		Materia materia = materiaService.findMateria(id);
 		MateriaDTO materiaDTO = new MateriaDTO(materia);
 
-		System.out.println("Y ASI SE VA : " + materiaDTO);
-		return materiaDTO;
+		return ResponseEntity.status(HttpStatus.ACCEPTED).body(materiaDTO);
 
 	}
 
+	/**
+	 * Este método permite crear un examen para una materia específica y agregar preguntas con sus respuestas al examen.
+	 *
+	 * @param idMateria El ID de la materia a la que se asociará el examen.
+	 * @param preguntas La lista de preguntas con respuestas que se agregarán al examen.
+	 * @return ResponseEntity con un objeto JSON que indica si el examen se creó con éxito o si hubo un error.
+	 */
 	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
 	@PostMapping("/crearExamen/{idMateria}")
 	public ResponseEntity<?> crearExamen(@PathVariable long idMateria, @RequestBody List<Pregunta> preguntas) {
@@ -449,6 +511,12 @@ public class controller {
 		
 	}
 
+	/**
+	 * Este método busca y muestra un examen, convirtiéndolo en un objeto DTO. Excluye las relaciones y los valores booleanos.
+	 *
+	 * @param idExamen El ID del examen a mostrar.
+	 * @return ResponseEntity con el examen en forma de DTO o un mensaje de error.
+	 */
 	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
 	@GetMapping("/mostrarExamen/{idExamen}")
 	public ResponseEntity<?> mostrarExamen(@PathVariable long idExamen) { // CREA UN EXAMEN DTO Y PONELE LOS VALORES VOS
@@ -492,14 +560,22 @@ public class controller {
 		}
 	}
 
+	/**
+	 * Este método corrige un examen y registra la nota del alumno en la base de datos.
+	 *
+	 * @param examen    El examen corregido.
+	 * @param idMateria  El ID del examen a corregir.
+	 * @param idAlumno  El ID del alumno que realizó el examen.
+	 * @return ResponseEntity con un mensaje de confirmación o los detalles de un error.
+	 */
 	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
 	@PostMapping("/corregirExamen/{idExamen}/{idAlumno}")
-	public ResponseEntity<?> corregirExamen(@RequestBody Examen examen, @PathVariable long idExamen,
+	public ResponseEntity<?> corregirExamen(@RequestBody Examen examen, @PathVariable long idMateria,
 			@PathVariable int idAlumno) {
 
 		Usuario alumno = usuarioService.findUsuario(idAlumno);
 
-		Examen examenBD = materiaService.findMateria(idExamen).getExamen();
+		Examen examenBD = materiaService.findMateria(idMateria).getExamen();
 
 		char notaFinal = calificarExamen(examenBD, examen);
 
@@ -513,10 +589,18 @@ public class controller {
 
 		System.out.println(nota.getNota());
 
-		return null;
+		return ResponseEntity.ok("Examen corregido y nota registrada correctamente.");
 
 	}
 
+
+	/**
+	 * Calcula la calificación del examen del alumno comparando las respuestas con las respuestas correctas.
+	 *
+	 * @param examenBD            El examen con las respuestas correctas.
+	 * @param examenDelAlumno     El examen del alumno que se va a calificar.
+	 * @return                    La calificación como un carácter (por ejemplo, 'A', 'B', 'C').
+	 */
 	public char calificarExamen(Examen examenBD, Examen examenDelAlumno) {
 
 		int contRespuestasCorrectas = 0;
@@ -578,9 +662,17 @@ public class controller {
 		return calificacion;
 	}
 
+
+	/**
+	 * Recupera y muestra las notas de un alumno en función de las materias en las que está inscrito.
+	 *
+	 * @param alumnoId   El ID del alumno para el que se muestran las notas.
+	 * @return           Un mapa que asocia el nombre de la materia con la calificación (por ejemplo, 'Materia A': 'B', 'Materia B': 'A').
+	 */
 	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
 	@GetMapping("mostrarNotas/{alumnoId}")
-	public Map<String, Character> mostrarNotas(@PathVariable int alumnoId) {
+	public ResponseEntity<?> mostrarNotas(@PathVariable int alumnoId) {
+
 		Usuario alumno = usuarioService.findUsuario(alumnoId);
 
 		if (alumno != null) {
@@ -603,16 +695,16 @@ public class controller {
 				}
 
 			}
-
-			System.out.println(notas);
-
-			return notas;
+             return  ResponseEntity.ok(notas);
 
 		} else {
 			// En caso de que el alumno no exista, puedes devolver un mapa vacío o un
 			// mensaje de error
-			return Collections.emptyMap(); // o cualquier otra acción apropiada
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Ocurrió un error interno en el servidor.");
 		}
+
 	}
+
+
 
 }

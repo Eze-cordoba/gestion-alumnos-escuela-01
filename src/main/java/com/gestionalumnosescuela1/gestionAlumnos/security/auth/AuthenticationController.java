@@ -19,6 +19,12 @@ public class AuthenticationController {
 
   private final AuthenticationService service;
 
+	/**
+	 * Registra a un usuario utilizando los datos proporcionados en el objeto RegisterRequest.
+	 *
+	 * @param request   La solicitud de registro con la información del usuario.
+	 * @return          Una respuesta que indica si el registro se realizó con éxito o si hubo algún error.
+	 */
   @PostMapping("/register")
   public ResponseEntity<?> register(  @RequestBody RegisterRequest request) {
 	  
@@ -34,7 +40,13 @@ public class AuthenticationController {
 	  
   }
   
-  
+
+	/**
+	 * Autentica a un usuario utilizando las credenciales proporcionadas en la solicitud.
+	 *
+	 * @param request La solicitud de autenticación que contiene las credenciales del usuario.
+	 * @return La respuesta de autenticación que incluye un token si la autenticación es exitosa.
+	 */
   @PostMapping("/authenticate")
   public ResponseEntity<AuthenticationResponse> authenticate( @RequestBody AuthenticationRequest request ) {
 	  
@@ -50,8 +62,14 @@ public class AuthenticationController {
 	    
 	}
 
-  
 
+	/**
+	 * Refresca el token de autenticación del usuario.
+	 *
+	 * @param request  La solicitud HTTP que contiene la información necesaria para el refresco del token.
+	 * @param response La respuesta HTTP en la que se enviará el nuevo token de autenticación.
+	 * @throws IOException Si ocurre un error al manejar la solicitud o respuesta.
+	 */
   @PostMapping("/refresh-token")
   public void refreshToken(
       HttpServletRequest request,

@@ -33,7 +33,6 @@ public class AuthenticationService {
   private final AuthenticationManager authenticationManager;
 
   public  AuthenticationResponse register(RegisterRequest request) {
-   System.out.println("AA LLEGAAA  A REGISTER");
    
 	try {
 		  var usuario = Usuario.builder()
