@@ -1,8 +1,6 @@
 package com.gestionalumnosescuela1.gestionAlumnos.repository;
 
-import com.gestionalumnosescuela1.gestionAlumnos.entity.Examen;
 import com.gestionalumnosescuela1.gestionAlumnos.entity.Pregunta;
-import com.gestionalumnosescuela1.gestionAlumnos.entityDao.ExamenDao;
 import com.gestionalumnosescuela1.gestionAlumnos.entityDao.PreguntaDao;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

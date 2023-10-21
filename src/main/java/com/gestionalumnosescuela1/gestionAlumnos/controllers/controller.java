@@ -511,11 +511,14 @@ public class controller {
 		
 	}
 
-	/**
-	 * Este método busca y muestra un examen, convirtiéndolo en un objeto DTO. Excluye las relaciones y los valores booleanos.
+	/*
+	 * Este método busca y muestra un examen, convirtiéndolo en un objeto DTO.
+	 * Excluye las relaciones y los valores booleanos.
 	 *
 	 * @param idExamen El ID del examen a mostrar.
-	 * @return ResponseEntity con el examen en forma de DTO o un mensaje de error.
+	 * @param idAlumno El ID del alumno relacionado con el examen.
+	 * @param examen Un objeto Examen que contiene los datos del examen a calificar.
+	 * @return ResponseEntity con el resultado de la corrección del examen.
 	 */
 	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
 	@GetMapping("/mostrarExamen/{idExamen}")
@@ -560,23 +563,23 @@ public class controller {
 		}
 	}
 
-	/**
-	 * Este método corrige un examen y registra la nota del alumno en la base de datos.
+
+
+
+
+	/*
+	 * Este método permite calificar un examen y registrar la nota en la base de datos.
 	 *
-	 * @param examen    El examen corregido.
-	 * @param idMateria  El ID del examen a corregir.
-	 * @param idAlumno  El ID del alumno que realizó el examen.
-	 * @return ResponseEntity con un mensaje de confirmación o los detalles de un error.
+	 * @param idExamen El ID del examen a calificar.
+	 * @param idAlumno El ID del alumno al que se le asignará la nota.
+	 * @param examen Un objeto Examen que contiene los datos del examen calificado.
+	 * @return ResponseEntity con un mensaje de éxito (HTTP 200 OK) después de calificar el examen y registrar la nota.
 	 */
-	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
 	@PostMapping("/corregirExamen/{idExamen}/{idAlumno}")
-	public ResponseEntity<?> corregirExamen(@RequestBody Examen examen, @PathVariable long idMateria,
-			@PathVariable int idAlumno) {
-
+	public ResponseEntity<String> corregirExamen(@RequestBody Examen examen, @PathVariable Long idExamen,
+												 @PathVariable int idAlumno) {
 		Usuario alumno = usuarioService.findUsuario(idAlumno);
-
-		Examen examenBD = materiaService.findMateria(idMateria).getExamen();
-
+		Examen examenBD = materiaService.findMateria(idExamen).getExamen();
 		char notaFinal = calificarExamen(examenBD, examen);
 
 		Nota nota = new Nota();
@@ -589,17 +592,16 @@ public class controller {
 
 		System.out.println(nota.getNota());
 
-		return ResponseEntity.ok("Examen corregido y nota registrada correctamente.");
-
+		// Devuelve una respuesta HTTP 200 OK
+		return ResponseEntity.ok("Examen corregido y nota registrada exitosamente.");
 	}
 
-
-	/**
-	 * Calcula la calificación del examen del alumno comparando las respuestas con las respuestas correctas.
+	/*
+	 * Este método calcula la calificación de un examen comparando las respuestas del examen del alumno con las respuestas correctas del examen de referencia.
 	 *
-	 * @param examenBD            El examen con las respuestas correctas.
-	 * @param examenDelAlumno     El examen del alumno que se va a calificar.
-	 * @return                    La calificación como un carácter (por ejemplo, 'A', 'B', 'C').
+	 * @param examenBD             El examen de referencia con las respuestas correctas.
+	 * @param examenDelAlumno      El examen del alumno que se va a calificar.
+	 * @return La calificación en forma de carácter (por ejemplo, A, B, C, etc.) basada en el porcentaje de respuestas correctas.
 	 */
 	public char calificarExamen(Examen examenBD, Examen examenDelAlumno) {
 
@@ -633,46 +635,51 @@ public class controller {
 		return obtenerCalificacion((int) porcentaje);
 	}
 
+	/**
+	 * Este método calcula la calificación en forma de carácter (A, B, C, D, F) basada en un puntaje numérico.
+	 *
+	 * @param puntaje El puntaje numérico para el cual se va a determinar la calificación.
+	 * @return La calificación en forma de carácter (A, B, C, D, F) basada en el puntaje proporcionado.
+	 */
 	public static char obtenerCalificacion(int puntaje) {
 
 		char calificacion;
 
 		switch (puntaje / 20) {
-		case 0:
-		case 1:
-			calificacion = 'F';
-			break;
-		case 2:
-			calificacion = 'D';
-			break;
-		case 3:
-			calificacion = 'C';
-			break;
-		case 4:
-			calificacion = 'B';
-			break;
-		case 5:
-			calificacion = 'A';
-			break;
-		default:
-			calificacion = 'N'; // Valor por defecto si el puntaje está fuera del rango
-			break;
+			case 0:
+			case 1:
+				calificacion = 'F';
+				break;
+			case 2:
+				calificacion = 'D';
+				break;
+			case 3:
+				calificacion = 'C';
+				break;
+			case 4:
+				calificacion = 'B';
+				break;
+			case 5:
+				calificacion = 'A';
+				break;
+			default:
+				calificacion = 'N'; // Valor por defecto si el puntaje está fuera del rango
+				break;
 		}
 
 		return calificacion;
 	}
 
-
 	/**
-	 * Recupera y muestra las notas de un alumno en función de las materias en las que está inscrito.
+	 * Este método muestra las notas de un alumno en sus materias inscritas.
 	 *
-	 * @param alumnoId   El ID del alumno para el que se muestran las notas.
-	 * @return           Un mapa que asocia el nombre de la materia con la calificación (por ejemplo, 'Materia A': 'B', 'Materia B': 'A').
+	 * @param alumnoId El ID del alumno para el cual se mostrarán las notas.
+	 * @return Un mapa que asocia el nombre de la materia con su calificación en forma de carácter.
+	 *         Si el alumno no existe o no tiene notas registradas, se devolverá un mapa vacío.
 	 */
 	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
 	@GetMapping("mostrarNotas/{alumnoId}")
-	public ResponseEntity<?> mostrarNotas(@PathVariable int alumnoId) {
-
+	public  ResponseEntity<?> mostrarNotas(@PathVariable int alumnoId) {
 		Usuario alumno = usuarioService.findUsuario(alumnoId);
 
 		if (alumno != null) {
@@ -695,16 +702,27 @@ public class controller {
 				}
 
 			}
-             return  ResponseEntity.ok(notas);
+
+			System.out.println(notas);
+
+			return ResponseEntity.ok(notas);
 
 		} else {
 			// En caso de que el alumno no exista, puedes devolver un mapa vacío o un
 			// mensaje de error
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Ocurrió un error interno en el servidor.");
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Alumno no encontrado"); // o cualquier otra acción apropiada
 		}
-
 	}
 
+
+	@PreAuthorize("hasAnyRole('ADMIN')")
+	public ResponseEntity<?> eliminarExamen (){
+
+
+
+
+		return null;
+	}
 
 
 }

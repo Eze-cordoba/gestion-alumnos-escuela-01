@@ -47,10 +47,10 @@ public class UsuarioService {
 	}
 
 	
-	public void crearUsuario(Usuario usuario) {
-	
+	public Usuario crearUsuario(Usuario usuario) {
+
 		try {
-		usuarioDao.save(usuario);
+		return usuarioDao.save(usuario);
 	} catch (Exception e) {
 		throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "No se pudo crear al usuario");
 	}
