@@ -90,7 +90,7 @@ public class SecurityConfiguration{
           .authenticated()
         .and()
         
-        .cors().and() // ERA EL CORS PAPA
+        .cors().and()
         
           .sessionManagement()
           .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
