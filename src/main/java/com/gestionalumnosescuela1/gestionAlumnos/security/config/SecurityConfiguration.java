@@ -15,8 +15,7 @@ import org.springframework.security.web.authentication.logout.LogoutHandler;
 
 
 import static com.gestionalumnosescuela1.gestionAlumnos.entity.Permission.*;
-import static com.gestionalumnosescuela1.gestionAlumnos.entity.Role.ADMIN;
-import static com.gestionalumnosescuela1.gestionAlumnos.entity.Role.MANAGER;
+import static com.gestionalumnosescuela1.gestionAlumnos.entity.Role.*;
 import static org.springframework.http.HttpMethod.*;
 
 @Configuration
@@ -55,21 +54,21 @@ public class SecurityConfiguration{
         )
           .permitAll()
           
-        .requestMatchers("/api/v1/management/**").hasAnyRole(ADMIN.name(), MANAGER.name())
-        .requestMatchers("/utn/alumnos/verMateria/{id}").hasAnyRole(ADMIN.name(), MANAGER.name())
-        .requestMatchers("/utn/alumnos/crearMateria/{id}").hasAnyRole(ADMIN.name(), MANAGER.name())
-        .requestMatchers("/utn /alumnos/listarAlumnos").hasAnyRole(ADMIN.name())
-        .requestMatchers("/utn/agregarMateria/{idAlumno}").hasAnyRole(ADMIN.name(), MANAGER.name())
-        .requestMatchers("/utn/crearExamen/{idMateria}").hasAnyRole(ADMIN.name(), MANAGER.name())
-        .requestMatchers("/utn/mostrarExamen/{idMateria}").hasAnyRole(ADMIN.name(), MANAGER.name())
-        .requestMatchers("/utn/corregirExamen/{idMateria}/{idAlumno}").hasAnyRole(ADMIN.name(), MANAGER.name())
-        .requestMatchers("/utn/mostrarNotas/{alumnoId}").hasAnyRole(ADMIN.name(), MANAGER.name())
-        .requestMatchers("/utn/cerrarSesion").hasAnyRole(ADMIN.name(), MANAGER.name())
-        .requestMatchers("/utn/eliminarCuenta/{idUsuario}").hasAnyRole(ADMIN.name(), MANAGER.name())
+        .requestMatchers("/api/v1/management/**").hasAnyRole(PROFESOR.name(), ALUMNO.name())
+        .requestMatchers("/utn/alumnos/verMateria/{id}").hasAnyRole(PROFESOR.name(), ALUMNO.name())
+        .requestMatchers("/utn/alumnos/crearMateria/{id}").hasAnyRole(PROFESOR.name(), ALUMNO.name())
+        .requestMatchers("/utn /alumnos/listarAlumnos").hasAnyRole(PROFESOR.name())
+        .requestMatchers("/utn/agregarMateria/{idAlumno}").hasAnyRole(PROFESOR.name(), ALUMNO.name())
+        .requestMatchers("/utn/crearExamen/{idMateria}").hasAnyRole(PROFESOR.name(), ALUMNO.name())
+        .requestMatchers("/utn/mostrarExamen/{idMateria}").hasAnyRole(PROFESOR.name(), ALUMNO.name())
+        .requestMatchers("/utn/corregirExamen/{idMateria}/{idAlumno}").hasAnyRole(PROFESOR.name(), ALUMNO.name())
+        .requestMatchers("/utn/mostrarNotas/{alumnoId}").hasAnyRole(PROFESOR.name(), ALUMNO.name())
+        .requestMatchers("/utn/cerrarSesion").hasAnyRole(PROFESOR.name(), ALUMNO.name())
+        .requestMatchers("/utn/eliminarCuenta/{idUsuario}").hasAnyRole(PROFESOR.name(), ALUMNO.name())
         
-        .requestMatchers("/utn/eliminarAlumno/{id}").hasAnyRole(ADMIN.name(), MANAGER.name())
-        .requestMatchers("/utn/editarAlumno/{id}").hasAnyRole(ADMIN.name(), MANAGER.name())
-        .requestMatchers( "/utn/alumnos/{id}").hasAnyRole(ADMIN.name(), MANAGER.name())
+        .requestMatchers("/utn/eliminarAlumno/{id}").hasAnyRole(PROFESOR.name(), ALUMNO.name())
+        .requestMatchers("/utn/editarAlumno/{id}").hasAnyRole(PROFESOR.name(), ALUMNO.name())
+        .requestMatchers( "/utn/alumnos/{id}").hasAnyRole(PROFESOR.name(), ALUMNO.name())
 
             /*
 

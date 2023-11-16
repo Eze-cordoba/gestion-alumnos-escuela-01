@@ -65,7 +65,7 @@ public class controller {
 	 *         En caso de error, responde con un mensaje de error y el código de estado correspondiente.
 	 */
 	@GetMapping("/alumnos/listarAlumnos")
-	@PreAuthorize("hasRole('ADMIN')")
+	@PreAuthorize("hasRole('PROFESOR')")
 	public ResponseEntity<?> listarAlumnos() {
 
 		Map<String, Object> response = new HashMap<>();
@@ -75,7 +75,7 @@ public class controller {
 			List<Usuario> usuarios = usuarioService.findAll();
 			//los usuarios con rol manager (alumnos) se les asignara el nombre del rol alumno
 			List<AlumnoDTO> alumnosDTO = usuarios.stream()
-					.filter(usuario -> usuario.getRole().equals(Role.MANAGER))
+					.filter(usuario -> usuario.getRole().equals(Role.ALUMNO))
 					.map(alumno -> {
 						AlumnoDTO alumnoDTO = new AlumnoDTO(alumno);
 						alumnoDTO.setRol("alumno");
@@ -108,7 +108,7 @@ public class controller {
 	 *         En caso de error, responde con un mensaje de error y el código de estado correspondiente.
 	 */
 	@GetMapping("/alumnos/materiasDelProfesor/{id}")
-	@PreAuthorize("hasRole('ADMIN')")
+	@PreAuthorize("hasRole('PROFESOR')")
 	public ResponseEntity<?> materiasDelProfesor(@PathVariable int id) {
 
 		Map<String, Object> response = new HashMap<>();
@@ -148,7 +148,7 @@ public class controller {
 	 *         En caso de que el usuario no exista, responde con código de estado 404 (No encontrado).
 	 *         En caso de error, responde con un mensaje de error y el código de estado correspondiente.
 	 */
-	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+	@PreAuthorize("hasAnyRole('PROFESOR', 'ALUMNO')")
 	@GetMapping("/alumnos/{id}")
 	public ResponseEntity<?> verUsuario(@PathVariable int id) {
 
@@ -196,7 +196,7 @@ public class controller {
 		Map<String, Object> errorResponse = new HashMap<>();
 		try {
 
-			if (request.getRole().equals(Role.ADMIN)) {
+			if (request.getRole().equals(Role.PROFESOR)) {
 				System.out.println("CREANDO PROFESOR ");
 			} else {
 				System.out.println("CREANDO ALUMNO");
@@ -236,7 +236,7 @@ public class controller {
 	 * @return ResponseEntity con código de estado 202 (ACEPTADO) en caso de éxito al eliminar la cuenta.
 	 *         En caso de error, responde con un mensaje de error y el código de estado correspondiente.
 	 */
-	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+	@PreAuthorize("hasAnyRole('PROFESOR', 'ALUMNO')")
 	@DeleteMapping("/eliminarCuenta/{idUsuario}")
 	public ResponseEntity<?> eliminarCuenta(@PathVariable int idUsuario) {
 
@@ -278,7 +278,7 @@ public class controller {
 	 * @param response  El objeto HttpServletResponse para la respuesta.
 	 * @return ResponseEntity con un objeto JSON que contiene un mensaje de confirmación (código de estado 200 - OK) cuando la sesión se cierra exitosamente.
 	 */
-	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+	@PreAuthorize("hasAnyRole('PROFESOR', 'ALUMNO')")
 	@GetMapping("/cerrarSesion")
 	public ResponseEntity<Map<String, String>> cerrarSesion(HttpServletRequest request, HttpServletResponse response) {
 
@@ -306,7 +306,7 @@ public class controller {
 	 * @return ResponseEntity con AuthenticationResponse en el cuerpo de la respuesta (código de estado 200 - OK) si la edición es exitosa.
 	 *         En caso de error, responde con un mensaje de error y el código de estado correspondiente.
 	 */
-	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+	@PreAuthorize("hasAnyRole('PROFESOR', 'ALUMNO')")
 	@PutMapping("/editarAlumno/{id}")
 	public ResponseEntity<AuthenticationResponse> editarAlumno(@PathVariable int id, @RequestBody Usuario usuario) {
 
@@ -334,7 +334,7 @@ public class controller {
 	 * @return ResponseEntity con un objeto JSON que contiene un mensaje de éxito o error (código de estado 202 - ACEPTADO si es exitoso).
 	 *         En caso de error, responde con un mensaje de error y el código de estado correspondiente.
 	 */
-	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+	@PreAuthorize("hasAnyRole('PROFESOR', 'ALUMNO')")
 	@PutMapping("/agregarMateria/{idAlumno}")
 	public ResponseEntity<?> agregarMateriaAlumno(@PathVariable int idAlumno, @RequestBody String Materia)
 			throws JsonMappingException, JsonProcessingException {
@@ -357,7 +357,7 @@ public class controller {
 
 			if (materiaa.getName().equalsIgnoreCase(materiaValue)) {
 
-				if (usuario.getRole().equals(Role.ADMIN)) {
+				if (usuario.getRole().equals(Role.PROFESOR)) {
 					response.put("error", "El profesor  ya esta inscripto  en la materia");
 				} else {
 					response.put("error", "El alumno ya esta inscripto en la materia");
@@ -369,11 +369,11 @@ public class controller {
 		}
 
 		//si es un profesor , iteramos para ver si ya hay otro profesor dictando la materia
-		if (usuario.getRole().equals(Role.ADMIN)) {
+		if (usuario.getRole().equals(Role.PROFESOR)) {
 
 			for (Usuario usuarioo : materia.getAlumnos()) {
 
-				if (usuarioo.getRole().equals(Role.ADMIN)) {
+				if (usuarioo.getRole().equals(Role.PROFESOR)) {
 					response.put("error", "Ya hay un profesor dictando esta materia");
 					return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
 				}
@@ -382,7 +382,7 @@ public class controller {
 
 		}
 
-		if (usuario.getRole().equals(Role.ADMIN)) {
+		if (usuario.getRole().equals(Role.PROFESOR)) {
 			// ponemos el nombre del profesor en la materia que dicta
 			materia.setTeacherName(usuario.getFirstname());
 		}
@@ -402,7 +402,7 @@ public class controller {
 	 * @param id El ID del usuario (alumno o profesor) que se desea eliminar.
 	 * @return ResponseEntity con un objeto JSON vacío (código de estado 200 - OK) para indicar que el usuario se ha eliminado correctamente.
 	 */
-	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+	@PreAuthorize("hasAnyRole('PROFESOR', 'ALUMNO')")
 	@DeleteMapping("eliminarAlumno/{id}")
 	public ResponseEntity<?> eliminarAlumno(@PathVariable int id) {
 
@@ -440,7 +440,7 @@ public class controller {
 	 * @param id El ID de la materia que se desea ver.
 	 * @return Un objeto MateriaDTO que representa los detalles de la materia.
 	 */
-	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+	@PreAuthorize("hasAnyRole('PROFESOR', 'ALUMNO')")
 	@GetMapping("/verMateria/{id}")
 	public ResponseEntity<?> verMateria(@PathVariable Long id) {
 
@@ -458,7 +458,7 @@ public class controller {
 	 * @param preguntas La lista de preguntas con respuestas que se agregarán al examen.
 	 * @return ResponseEntity con un objeto JSON que indica si el examen se creó con éxito o si hubo un error.
 	 */
-	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+	@PreAuthorize("hasAnyRole('PROFESOR', 'ALUMNO')")
 	@PostMapping("/crearExamen/{idMateria}")
 	public ResponseEntity<?> crearExamen(@PathVariable long idMateria, @RequestBody List<Pregunta> preguntas) {
 
@@ -520,7 +520,7 @@ public class controller {
 	 * @param examen Un objeto Examen que contiene los datos del examen a calificar.
 	 * @return ResponseEntity con el resultado de la corrección del examen.
 	 */
-	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+	@PreAuthorize("hasAnyRole('PROFESOR', 'ALUMNO')")
 	@GetMapping("/mostrarExamen/{idExamen}")
 	public ResponseEntity<?> mostrarExamen(@PathVariable long idExamen) { // CREA UN EXAMEN DTO Y PONELE LOS VALORES VOS
 																			// MISMO MENOS LOS BOOLEAN NI LAS RELACIONES
@@ -677,7 +677,7 @@ public class controller {
 	 * @return Un mapa que asocia el nombre de la materia con su calificación en forma de carácter.
 	 *         Si el alumno no existe o no tiene notas registradas, se devolverá un mapa vacío.
 	 */
-	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+	@PreAuthorize("hasAnyRole('PROFESOR', 'ALUMNO')")
 	@GetMapping("mostrarNotas/{alumnoId}")
 	public  ResponseEntity<?> mostrarNotas(@PathVariable int alumnoId) {
 		Usuario alumno = usuarioService.findUsuario(alumnoId);

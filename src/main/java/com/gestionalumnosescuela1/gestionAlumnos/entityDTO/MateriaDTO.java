@@ -36,7 +36,7 @@ public class MateriaDTO {
           
            for(Usuario alumno : materia.getAlumnos()  ) {
         	   
-        	   if(alumno.getRole().equals(Role.MANAGER)   ) { // si tienen rol admin no porque  son los profesores
+        	   if(alumno.getRole().equals(Role.ALUMNO)   ) { // si tienen rol admin no porque  son los profesores
         		   
         		     AlumnoDTO alumnoDTO = new AlumnoDTO();
                      alumnoDTO.setId(alumno.getId());

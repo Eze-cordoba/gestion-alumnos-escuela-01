@@ -48,7 +48,7 @@ public class AuthenticationService {
 			    var refreshToken = jwtService.generateRefreshToken(usuario);
 			    saveUserToken(savedAlumno, jwtToken);
 			    
-				if (usuario.getRole().equals(Role.MANAGER) ) {
+				if (usuario.getRole().equals(Role.ALUMNO) ) {
 				    return AuthenticationResponse.builder()
 					        .accessToken(jwtToken)
 					            .refreshToken(refreshToken)
@@ -101,7 +101,7 @@ public class AuthenticationService {
 			    revokeAllUserTokens(usuario);
 			    saveUserToken(usuario, jwtToken);
 			    
-				if (usuario.getRole().equals(Role.MANAGER) ) {
+				if (usuario.getRole().equals(Role.ALUMNO) ) {
 				    return AuthenticationResponse.builder()
 					        .accessToken(jwtToken)
 					            .refreshToken(refreshToken)
@@ -155,7 +155,7 @@ public class AuthenticationService {
      UpdateUserToken(savedAlumno, jwtToken);
       
       // Construir y devolver la respuesta de autenticación con los tokens actualizados y otros datos relevantes
- 	if (usuario.getRole().equals(Role.MANAGER) ) {
+ 	if (usuario.getRole().equals(Role.ALUMNO) ) {
 	    return AuthenticationResponse.builder()
 		        .accessToken(jwtToken)
 		            .refreshToken(refreshToken)

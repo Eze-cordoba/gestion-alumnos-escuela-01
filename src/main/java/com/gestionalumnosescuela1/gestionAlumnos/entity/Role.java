@@ -15,24 +15,24 @@ import static com.gestionalumnosescuela1.gestionAlumnos.entity.Permission.*;
 public enum Role {
 
 	  USER(Collections.emptySet()),
-	  ADMIN(
+	  PROFESOR(
 	          Set.of(
-	                  ADMIN_READ,
-	                  ADMIN_UPDATE,
-	                  ADMIN_DELETE,
-	                  ADMIN_CREATE,
-	                  MANAGER_READ,
-	                  MANAGER_UPDATE,
-	                  MANAGER_DELETE,
-	                  MANAGER_CREATE
+	                  PROFESOR_READ,
+					  PROFESOR_UPDATE,
+					  PROFESOR_DELETE,
+					  PROFESOR_CREATE,
+	                  ALUMNO_READ,
+					  ALUMNO_UPDATE,
+					  ALUMNO_DELETE,
+					  ALUMNO_CREATE
 	          )
 	  ),
-	  MANAGER(
+	  ALUMNO(
 	          Set.of(
-	                  MANAGER_READ,
-	                  MANAGER_UPDATE,
-	                  MANAGER_DELETE,
-	                  MANAGER_CREATE
+					  ALUMNO_READ,
+					  ALUMNO_UPDATE,
+					  ALUMNO_DELETE,
+					  ALUMNO_CREATE
 	          )
 	  )
 
